@@ -14,5 +14,5 @@ Validation_accuracy finally reached about 80%. Test of real object detection in 
 Thanks to fine tuning, only hundreds of training images can achieve this accuracy in a short time.
 
 ## Demo
-
+![demo](https://github.com/thejourneyofman/keras_medicine_detection/blob/master/images/medicine_detection.gif)
 
