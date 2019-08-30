@@ -33,11 +33,29 @@ class CvPutChnText:
 
         return cv_bgr_result_image
 
-if __name__ == '__main__':
+# Detect hand and return a hand mask as well as the hand areas
+def extract_hand(frame):
+    HSV_MIN = np.array([0, 20, 50])
+    HSV_MAX = np.array([10, 100, 225])
+    converted = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    handMask = cv2.inRange(converted, HSV_MIN, HSV_MAX)
+    # apply a series of erosions and dilations to the mask
+    # using an elliptical kernel
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (11, 11))
+    handMask = cv2.erode(handMask, kernel, iterations=2)
+    handMask = cv2.dilate(handMask, kernel, iterations=2)
+    contours, _ = cv2.findContours(handMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    extracted = []
+    for cnt in contours:
+        approx = cv2.convexHull(cnt)
+        rect = cv2.boundingRect(approx)
+        extracted.append(np.array(rect))
+    return extracted, handMask
 
+if __name__ == '__main__':
     # Define the model, output and logging dir
     input_dir = 'data/input_video/'
-    model_dir = 'results/'
+    model_dir = 'results02_rotate/'
     sub_dir = model_dir + 'output_video_sub/'
     records_dir = 'Records/'
     cropped_dir = 'Cropped/'
@@ -52,7 +70,7 @@ if __name__ == '__main__':
         os.mkdir(cropped_dir)
 
     # Define the initial variables
-    img_size = 150 # has to be the same as the model trained and generated
+    img_size = 150  # has to be the same as the model trained and generated
     classes = ['medicine00', 'medicine01', 'medicine02', 'medicine03', 'medicine04',
                'medicine05', 'medicine06', 'medicine07', 'medicine08', 'medicine09']
     nb_classes = len(classes)
@@ -60,7 +78,7 @@ if __name__ == '__main__':
     label_name = {'0': u'头孢克洛胶囊', '1': u'氯雷他定片', '2': u'润肺膏', '3': u'氯化钠注射液', '4': u'普乐安片', '5': u'正柴胡饮颗粒',
                   '6': u'阿莫西林克拉维酸钾', '7': u'维生素b2片', '8': u'维生素C片', '9': u'辛伐他汀片'}
 
-    #import model
+    # import model
     input_tensor = Input(shape=(img_size, img_size, 3))
     vgg16 = VGG16(include_top=False, weights='imagenet', input_tensor=input_tensor)
     fc = Sequential()
@@ -93,7 +111,7 @@ if __name__ == '__main__':
         H = 375
         fps = vs.get(cv2.CAP_PROP_FPS)
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        out = cv2.VideoWriter(sub_dir + vf.split(".")[0] + '.mp4', fourcc, fps, (W, H))
+        out = cv2.VideoWriter(sub_dir + vf.split(".")[0] + '.mp4', fourcc, fps, (W*2, H))
         # Start the timer and record the processing time.
         fps = FPS().start()
 
@@ -118,10 +136,19 @@ if __name__ == '__main__':
             # Resize the frame to fit with output streams
             frame = imutils.resize(frame, width=W)
 
+            handcnts, handMask = extract_hand(frame)
+            # blur the mask to help remove noise, then apply the
+            # mask to the frame
+            handMask = cv2.GaussianBlur(handMask, (3, 3), 0)
+            hand = cv2.bitwise_and(frame, frame, mask=handMask)
+
+            after = frame - hand
+            after[np.where((after == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
+
             # Remove the shadow of the object to improve the accuracy of detection.
             # IT'S JUST A BEST EFFORT.
-            blur = cv2.blur(frame, (51, 51))
-            ratio = frame / blur
+            blur = cv2.blur(after, (51, 51))
+            ratio = after / blur
             index = np.where(ratio >= 1.00)
             ratio[index] = 1
             ratio_int = np.array(ratio * 255, np.uint8)
@@ -162,6 +189,12 @@ if __name__ == '__main__':
 
                 # Calculate the bounding box for the contour and draw it on the frame.
                 (x, y, w, h) = cv2.boundingRect(c)
+
+                # Detect if the contour is a hand, if yes, skip it
+                handcnts, handMask = extract_hand(frame[y:y + h, x:x + w])
+                if len(handcnts) > 0:
+                    continue
+
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 # Update the text
                 text = "Undetected"
@@ -169,8 +202,9 @@ if __name__ == '__main__':
                 # Logging and saving the cropped contours to disk.
                 new_cnt = frame[y:y + h, x:x + w]
                 cv2.imwrite(os.path.join('Cropped', vf, str(idx) + '.png'), new_cnt)
-                new_cnt = image.load_img(os.path.join('Cropped', vf, str(idx) + '.png'), target_size=(img_size, img_size))
-                #img = cv2.resize(frame[y:y + h, x:x + w], dsize=(img_size, img_size))
+                new_cnt = image.load_img(os.path.join('Cropped', vf, str(idx) + '.png'),
+                                         target_size=(img_size, img_size))
+                # img = cv2.resize(frame[y:y + h, x:x + w], dsize=(img_size, img_size))
                 idx += 1
 
                 # Format the contours to be classified by model.
@@ -201,10 +235,9 @@ if __name__ == '__main__':
             frame = CvPutChnText.puttext(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
                                          (10, frame.shape[0] - 20), 20, (255, 0, 0))
 
-
-            # Show the frame and outstream to the results.
-            cv2.imshow("Security Feed", frame)
-            out.write(frame)
+            # Show the frame for debug and outstream to the results.
+            #cv2.imshow("Security Feed", np.hstack([frame, ration_ret]))
+            out.write(np.hstack([frame, ration_ret]))
             # Until the `Esc` key is pressed, that will break from the loop.
             k = cv2.waitKey(100)
             if k == 27: break
