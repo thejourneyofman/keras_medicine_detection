@@ -35,8 +35,8 @@ class CvPutChnText:
 
 # Detect hand and return a hand mask as well as the hand areas
 def extract_hand(frame):
-    HSV_MIN = np.array([0, 20, 50])
-    HSV_MAX = np.array([10, 100, 225])
+    HSV_MIN = np.array([5, 50, 80])
+    HSV_MAX = np.array([20, 255, 150])
     converted = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     handMask = cv2.inRange(converted, HSV_MIN, HSV_MAX)
     # Apply a series of erosions and dilations to the mask using an elliptical kernel

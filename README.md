@@ -18,3 +18,6 @@ Thanks to fine tuning, hundreds of training images can achieve this accuracy in 
 
 ## Bonus
 Remove the hand and shadows in the motion video improved the accuracies of detection.
+
+## Bonus to Bonus
+Is there an efficient way to predict an object by "Shadow" as for early indication then go to a more accurate one? Imagine a moonnight you see a long shadow and hold your fingers crossed...
