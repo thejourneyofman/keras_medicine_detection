@@ -16,7 +16,5 @@ There are 905 train images in 10 classes and 23 test videos for object detection
 Validation accuracy finally reached above 95%. Test of real object detection in videos is also highly performed at both accuracies and single/multiple detections.
 Thanks to fine tuning, hundreds of training images can achieve this accuracy in a short time.
 
-## ToDos
-1, Remove the hands or skin colors
-Reference:
-2,
+## Bonus
+Remove the hand and shadows in the motion video improved the accuracies of detection.
