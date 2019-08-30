@@ -23,7 +23,7 @@ class CvPutChnText:
 
     @classmethod
     def puttext(cls, cv_image, text, point, font_size=20, color=(0, 0, 0)):
-        font = ImageFont.truetype("simhei.ttf", font_size, encoding="utf-8")
+        font = ImageFont.truetype('simhei.ttf', font_size, encoding='utf-8')
         cv_rgb_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         pil_image = Image.fromarray(cv_rgb_image)
         draw = ImageDraw.Draw(pil_image)
@@ -55,7 +55,7 @@ def extract_hand(frame):
 if __name__ == '__main__':
     # Define the model, output and logging dir
     input_dir = 'data/input_video/'
-    model_dir = 'results02_rotate/'
+    model_dir = 'results/'
     sub_dir = model_dir + 'output_video_sub/'
     records_dir = 'Records/'
     cropped_dir = 'Cropped/'
@@ -99,11 +99,11 @@ if __name__ == '__main__':
             os.mkdir(cropped_dir + vf)
 
         for file in os.scandir(cropped_dir + vf):
-            if file.name.endswith(".png"):
+            if file.name.endswith('.png'):
                 os.unlink(file.path)
 
         # Start capturing
-        print("[INFO] Capturing test videos..." + vf)
+        print('[INFO] Capturing test videos...' + vf)
         vs = cv2.VideoCapture(input_dir + vf)
 
         # Resize the output video to save spaces
@@ -111,7 +111,7 @@ if __name__ == '__main__':
         H = 375
         fps = vs.get(cv2.CAP_PROP_FPS)
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        out = cv2.VideoWriter(sub_dir + vf.split(".")[0] + '.mp4', fourcc, fps, (W*2, H))
+        out = cv2.VideoWriter(sub_dir + vf.split('.')[0] + '.mp4', fourcc, fps, (W*2, H))
         # Start the timer and record the processing time.
         fps = FPS().start()
 
@@ -128,7 +128,7 @@ if __name__ == '__main__':
         while vs.isOpened():
             # Grab the current frame and initialize the detected/undetected text
             ret, frame = vs.read()
-            text = "Undetected"
+            text = 'Undetected'
             # If the frame could not be grabbed, go to the end video
             if frame is None:
                 break
@@ -197,7 +197,7 @@ if __name__ == '__main__':
 
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 # Update the text
-                text = "Undetected"
+                text = 'Undetected'
 
                 # Logging and saving the cropped contours to disk.
                 new_cnt = frame[y:y + h, x:x + w]
@@ -229,14 +229,14 @@ if __name__ == '__main__':
                                              mean(d[str(max_label_img)]), max(d[str(max_label_img)])]
 
             # Label the frame with the object detected and time stamp to record the processing time.
-            frame = CvPutChnText.puttext(frame, "Detected {}".format(
+            frame = CvPutChnText.puttext(frame, 'Detected {}'.format(
                 ','.join([':'.join(['NO.' + str(x), label_name[str(x)]]) for x in list(set(labels))])),
                                          (10, 20), 20, (0, 220, 0))
-            frame = CvPutChnText.puttext(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
+            frame = CvPutChnText.puttext(frame, datetime.datetime.now().strftime('%A %d %B %Y %I:%M:%S%p'),
                                          (10, frame.shape[0] - 20), 20, (255, 0, 0))
 
             # Show the frame for debug and outstream to the results.
-            #cv2.imshow("Security Feed", np.hstack([frame, ration_ret]))
+            #cv2.imshow('Security Feed', np.hstack([frame, ration_ret]))
             out.write(np.hstack([frame, ration_ret]))
             # Until the `Esc` key is pressed, that will break from the loop.
             k = cv2.waitKey(100)
@@ -244,11 +244,11 @@ if __name__ == '__main__':
             fps.update()
 
         # Save the logging data.
-        records.to_csv(records_dir + vf.split(".")[0] + '.csv')
+        records.to_csv(records_dir + vf.split('.')[0] + '.csv')
         # Stop the timer and display FPS information
         fps.stop()
-        print("[INFO] Elapsed time: {:.2f}".format(fps.elapsed()))
-        print("[INFO] Approx. FPS: {:.2f}".format(fps.fps()))
+        print('[INFO] Elapsed time: {:.2f}'.format(fps.elapsed()))
+        print('[INFO] Approx. FPS: {:.2f}'.format(fps.fps()))
 
         # Clean up the opencv instances and close any open windows.
         vs.release()
