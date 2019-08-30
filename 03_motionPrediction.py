@@ -39,8 +39,7 @@ def extract_hand(frame):
     HSV_MAX = np.array([10, 100, 225])
     converted = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     handMask = cv2.inRange(converted, HSV_MIN, HSV_MAX)
-    # apply a series of erosions and dilations to the mask
-    # using an elliptical kernel
+    # Apply a series of erosions and dilations to the mask using an elliptical kernel
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (11, 11))
     handMask = cv2.erode(handMask, kernel, iterations=2)
     handMask = cv2.dilate(handMask, kernel, iterations=2)
