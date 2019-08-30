@@ -1,5 +1,8 @@
 # Build a powerful image classification model using small dataset.
 
+## Demo
+![demo](https://github.com/thejourneyofman/keras_medicine_detection/blob/master/images/medicine_detection.gif)
+
 ## What's Fine Tuning?
 When constructing a model from scratch such as CNN, it's necessary to collect a large amount of sample images, and deep learning takes time. A method of transfer learning also known as fine tuning aims to build models in less time by using already learned models.
 
@@ -13,6 +16,7 @@ There are 905 train images in 10 classes and 23 test videos for object detection
 Validation accuracy finally reached above 95%. Test of real object detection in videos is also highly performed at both accuracies and single/multiple detections.
 Thanks to fine tuning, hundreds of training images can achieve this accuracy in a short time.
 
-## Demo
-![demo](https://github.com/thejourneyofman/keras_medicine_detection/blob/master/images/medicine_detection.gif)
-
+## ToDos
+1, Remove the hands or skin colors
+Reference:
+2,
